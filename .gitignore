@@ -1,0 +1,48 @@
+# Android
+*.iml
+.gradle/
+local.properties
+.idea/
+*.apk
+*.aab
+*.ap_
+*.dex
+android/build/
+android/app/build/
+android/whisper/build/
+android/.cxx/
+android/app/.cxx/
+
+# Kotlin
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+
+# Signing
+*.jks
+*.keystore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+backend/data/
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Model files (downloaded at runtime)
+*.bin
