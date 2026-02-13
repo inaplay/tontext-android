@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background_dark">#FF1A1A2E</color>
-    <color name="surface_dark">#FF16213E</color>
-    <color name="accent">#FFE94560</color>
-    <color name="accent_pressed">#FFFF6B81</color>
-    <color name="text_primary">#FFFFFFFF</color>
-    <color name="text_secondary">#B3FFFFFF</color>
-    <color name="waveform_bar">#FFE94560</color>
-    <color name="mic_button_bg">#FF2A2A4A</color>
+    <color name="background_dark">#FFECECF1</color>
+    <color name="surface_dark">#FFDDDDE3</color>
+    <color name="accent">#FF4A6CF7</color>
+    <color name="accent_pressed">#FF3B5CE0</color>
+    <color name="text_primary">#FF1A1A1A</color>
+    <color name="text_secondary">#FF6E6E80</color>
+    <color name="waveform_bar">#FF4A6CF7</color>
+    <color name="mic_button_bg">#FFD8D8E0</color>
 </resources>
