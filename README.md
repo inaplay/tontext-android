@@ -12,140 +12,76 @@ This is a mono-repo with four components:
 |-----------|------|------|---------|
 | **Android App** | `android/` | Kotlin, C++ (JNI), whisper.cpp | The keyboard IME itself |
 | **Backend** | `backend/` | Python, FastAPI, SQLite | Serves APK downloads, tracks stats, admin dashboard |
-| **Website** | `web/` | Vanilla HTML/CSS | Landing page with download button |
-| **Infrastructure** | `deploy/`, `infra/` | Docker, Nginx, GitHub Actions | Deployment configs and CI/CD |
+| **Website** | `web/` | Vanilla HTML/CSS | Landing page at [tontext.app](https://tontext.app) |
+| **Infrastructure** | `deploy/`, `infra/`, `.github/workflows/` | Docker, Nginx, GitHub Actions | Deployment configs and CI/CD |
 
-### Android App (`android/`)
+## Development Workflow
 
-Two Gradle modules:
+Development is fully AI-assisted using [Claude Code](https://claude.com/claude-code). There are no manual code edits — all changes are made by describing what you want in natural language.
 
-- **`:app`** — The IME service, setup activity, keyboard UI with waveform visualizer, audio recorder
-- **`:whisper`** — JNI wrapper around whisper.cpp (git submodule), builds ARM-optimized native libraries (NEON, FP16)
+### The Development Cycle
 
-Key classes:
-- `TontextIMEService` — Core keyboard service
-- `SetupActivity` — Onboarding flow (enable IME, permissions, model download)
-- `KeyboardView` — Mic button, backspace, keyboard switch
-- `WaveformView` — Real-time audio amplitude visualization
-- `AudioRecorder` — 16kHz mono PCM recording
-- `WhisperTranscriber` / `WhisperContext` — Bridge to native whisper.cpp
+```
+ Developer                Claude Code             GitHub                  Servers
+ ─────────                ───────────             ──────                  ───────
 
-### Backend (`backend/`)
+ Describe a
+ product change ────────► Explores codebase
+                          Writes code
+                          Commits & pushes ──────► Push to main triggers
+                                                  GitHub Actions
+                                                        │
+                                        ┌───────────────┼───────────────┐
+                                        ▼               ▼               ▼
+                                   android/**      backend/**        web/**
+                                   changed?        changed?          changed?
+                                        │               │               │
+                                        ▼               ▼               ▼
+                                  Build APK on    rsync + Docker    rsync to
+                                  self-hosted     Compose rebuild   /var/www/tontext
+                                  runner server   on web server     + nginx reload
+                                        │               │               │
+                                        ▼               ▼               ▼
+                                  GitHub Release  Backend live at   Website live at
+                                  with APK        tontext.app/api   tontext.app
+                                        │
+                                        ▼
+                                  Obtainium on
+                                  Android phone
+                                  detects new
+                                  release, auto-
+                                  installs APK
+```
 
-FastAPI application that:
-- Serves the latest APK via `/api/download/latest`
-- Serves Whisper model files via `/api/model/{filename}`
-- Tracks download statistics (privacy-respecting — only stores IP hashes)
-- Provides an admin dashboard at `/admin` (Basic Auth)
+### Step by Step
 
-### Website (`web/`)
-
-Static single-page download site. Dark theme, fetches current version from the backend API.
+1. **Request a change** — Describe what you want in Claude Code (e.g. "add a settings button to the keyboard", "make the waveform bars thicker")
+2. **Claude Code implements** — It reads the codebase, makes changes across any component, and creates atomic git commits
+3. **Push to main** — Claude Code pushes to GitHub, which triggers CI/CD via path-based workflows:
+   - `android/**` changed → APK build on the self-hosted runner → GitHub Release
+   - `backend/**` or `deploy/**` changed → rsync to server → Docker rebuild → backend live
+   - `web/**` changed → rsync to server → nginx reload → website live
+4. **APK auto-updates** — [Obtainium](https://github.com/ImranR98/Obtainium) on the Android phone watches GitHub Releases, detects the new APK, and installs it automatically
+5. **Test on device** — The updated keyboard is immediately available
 
 ### Infrastructure
 
-- **`deploy/docker-compose.yml`** — Runs the backend in Docker, mounts volumes for SQLite DB and APK releases
-- **`deploy/nginx.conf`** — Reverse proxy with SSL (Let's Encrypt), serves the static site and proxies API requests
-- **`infra/setup-runner.sh`** — Provisions a self-hosted GitHub Actions runner with Android SDK/NDK for building APKs
-- **`.github/workflows/build-and-release.yml`** — CI pipeline: builds release APK on push to `main`, creates a GitHub Release
+| Server | Host | Role |
+|--------|------|------|
+| **Runner** | `89.58.28.241` (Netcup) | Self-hosted GitHub Actions runner with Android SDK/NDK, builds APKs |
+| **Web** | `45.83.105.43` (Netcup) | Hosts backend (Docker), website (static), nginx reverse proxy with SSL |
 
-## Development Setup
+### Prerequisites for Contributing
 
-### Prerequisites
-
-- **macOS or Linux** (macOS recommended for development)
-- **Android Studio** or at minimum:
-  - JDK 17
-  - Android SDK (API 34)
-  - Android NDK 27.1.12297006
-  - CMake (for native build)
-- **Python 3.12+** (for backend)
-- **Docker** (for deployment)
-
-### Getting Started
+- A local checkout of this repo (with `--recursive` for the whisper.cpp submodule)
+- [Claude Code](https://claude.com/claude-code) CLI installed
+- That's it — Claude Code handles the rest
 
 ```bash
-# Clone with submodules (whisper.cpp)
 git clone --recursive https://github.com/inaplay/tontext-android.git
 cd tontext-android
+claude
 ```
-
-If you already cloned without `--recursive`:
-```bash
-git submodule update --init --recursive
-```
-
-### Building the Android App
-
-Open `android/` in Android Studio, or build from the command line:
-
-```bash
-cd android
-
-# Debug build
-./gradlew assembleDebug
-
-# Release build
-./gradlew assembleRelease
-```
-
-The APK will be at `android/app/build/outputs/apk/release/app-release.apk`.
-
-To test on a device, install the APK and follow the setup flow:
-1. Enable Tontext as an input method in system settings
-2. Select Tontext as the active keyboard
-3. Grant microphone permission
-4. Download the Whisper model (happens automatically on first launch)
-
-### Running the Backend Locally
-
-```bash
-cd backend
-pip install -r requirements.txt
-
-# Set admin credentials
-export ADMIN_USERNAME=admin
-export ADMIN_PASSWORD=secret
-
-uvicorn app:app --reload --port 8000
-```
-
-The admin dashboard is then available at `http://localhost:8000/admin`.
-
-### Running the Website Locally
-
-The website is static HTML — open `web/index.html` in a browser, or serve it:
-
-```bash
-python -m http.server 8080 -d web
-```
-
-Note: The version badge requires the backend to be running.
-
-## Deployment
-
-### CI/CD Pipeline
-
-On every push to `main`, GitHub Actions:
-1. Builds a release APK on the self-hosted runner
-2. Creates a GitHub Release tagged `v{version}-build.{number}`
-3. Attaches the APK as a release asset
-
-### Server Deployment
-
-The backend and website are deployed to a Netcup VPS via Docker Compose:
-
-```bash
-cd deploy
-
-# Set environment variables
-export ADMIN_USERNAME=...
-export ADMIN_PASSWORD=...
-
-docker compose up -d
-```
-
-Nginx serves the static website and proxies `/api/*` and `/admin` to the backend container.
 
 ## Project Documentation
 
