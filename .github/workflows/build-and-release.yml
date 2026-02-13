@@ -2,7 +2,7 @@ name: Build and Release APK
 
 on:
   push:
-    branches: [claude/android-voice-keyboard-hhoXx, main]
+    branches: [main]
 
 permissions:
   contents: write
