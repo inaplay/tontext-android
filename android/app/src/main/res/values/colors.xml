@@ -8,4 +8,6 @@
     <color name="text_secondary">#FF6E6E80</color>
     <color name="waveform_bar">#FF4A6CF7</color>
     <color name="mic_button_bg">#FFD8D8E0</color>
+    <color name="mic_button_color">#FF64B5F6</color>
+    <color name="mic_button_pressed">#FF42A5F5</color>
 </resources>
