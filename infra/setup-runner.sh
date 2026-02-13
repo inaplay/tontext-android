@@ -3,16 +3,16 @@ set -euo pipefail
 
 # ============================================================
 # Self-hosted GitHub Actions Runner Setup for Android Builds
-# Run this on your Netcup root server (Ubuntu/Debian)
+# Registers at the ORGANIZATION level so all repos can use it.
 #
 # Usage:
 #   1. Get a runner token from:
-#      https://github.com/inaplay/tontext-android/settings/actions/runners/new
+#      https://github.com/organizations/inaplay/settings/actions/runners/new
 #   2. Run: sudo bash setup-runner.sh <RUNNER_TOKEN>
 # ============================================================
 
 RUNNER_TOKEN="${1:-}"
-REPO="inaplay/tontext-android"
+GITHUB_ORG="inaplay"
 RUNNER_USER="github-runner"
 RUNNER_DIR="/opt/github-runner"
 ANDROID_HOME="/opt/android-sdk"
@@ -22,7 +22,7 @@ if [ -z "$RUNNER_TOKEN" ]; then
   echo "Usage: sudo bash setup-runner.sh <RUNNER_TOKEN>"
   echo ""
   echo "Get your token from:"
-  echo "  https://github.com/$REPO/settings/actions/runners/new"
+  echo "  https://github.com/organizations/$GITHUB_ORG/settings/actions/runners/new"
   exit 1
 fi
 
@@ -81,11 +81,11 @@ fi
 
 chown -R "$RUNNER_USER:$RUNNER_USER" "$RUNNER_DIR"
 
-echo "==> Configuring runner"
+echo "==> Configuring runner (organization-level for all $GITHUB_ORG repos)"
 sudo -u "$RUNNER_USER" bash -c "
   cd $RUNNER_DIR
   ./config.sh \
-    --url https://github.com/$REPO \
+    --url https://github.com/$GITHUB_ORG \
     --token $RUNNER_TOKEN \
     --name netcup-android-builder \
     --labels self-hosted,linux,android \
@@ -126,6 +126,7 @@ echo "  Runner setup complete!"
 echo "============================================"
 echo ""
 echo "  Runner name:  netcup-android-builder"
+echo "  Scope:        All repos in $GITHUB_ORG"
 echo "  Labels:       self-hosted, linux, android"
 echo "  Android SDK:  $ANDROID_HOME"
 echo "  NDK:          $NDK_VERSION"
