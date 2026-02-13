@@ -1,49 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="270dp"
+    android:orientation="vertical"
     android:background="@color/background_dark">
 
+    <!-- Waveform visualization -->
     <com.tontext.app.ui.WaveformView
         android:id="@+id/waveformView"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_gravity="top"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp" />
 
-    <ImageButton
-        android:id="@+id/micButton"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/mic_button_bg"
-        android:contentDescription="@string/app_name"
-        android:scaleType="center"
-        android:src="@drawable/ic_mic" />
-
+    <!-- Status text -->
     <TextView
         android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="8dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="4dp"
         android:textColor="@color/text_secondary"
         android:textSize="13sp" />
 
-    <ImageButton
-        android:id="@+id/switchKeyboardButton"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_gravity="bottom|end"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="8dp"
-        android:background="?android:attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Switch keyboard"
-        android:scaleType="center"
-        android:src="@drawable/ic_keyboard_switch"
-        android:tint="@color/text_secondary" />
+    <!-- Spacer -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-</FrameLayout>
+    <!-- Button row: switch | mic | backspace -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="12dp">
+
+        <!-- Left: Switch keyboard -->
+        <ImageButton
+            android:id="@+id/switchKeyboardButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Switch keyboard"
+            android:scaleType="center"
+            android:src="@drawable/ic_keyboard_switch" />
+
+        <!-- Center: Mic button -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageButton
+                android:id="@+id/micButton"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_gravity="center"
+                android:background="@drawable/mic_button_bg"
+                android:contentDescription="@string/app_name"
+                android:scaleType="center"
+                android:src="@drawable/ic_mic" />
+        </FrameLayout>
+
+        <!-- Right: Backspace -->
+        <ImageButton
+            android:id="@+id/backspaceButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Backspace"
+            android:scaleType="center"
+            android:src="@drawable/ic_backspace" />
+
+    </LinearLayout>
+
+</LinearLayout>

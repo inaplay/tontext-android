@@ -1,14 +1,18 @@
 package com.tontext.app.ui
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.TextView
 import com.tontext.app.R
+
+private const val BACKSPACE_INITIAL_DELAY_MS = 400L
+private const val BACKSPACE_REPEAT_DELAY_MS = 50L
 
 enum class KeyboardState {
     IDLE, RECORDING, TRANSCRIBING
@@ -24,13 +28,24 @@ class KeyboardView @JvmOverloads constructor(
     val micButton: ImageButton
     val statusText: TextView
     val switchKeyboardButton: ImageButton
+    val backspaceButton: ImageButton
 
     var onRecordStart: (() -> Unit)? = null
     var onRecordStop: (() -> Unit)? = null
     var onCancelTranscription: (() -> Unit)? = null
     var onSwitchKeyboard: (() -> Unit)? = null
+    var onBackspace: (() -> Unit)? = null
 
     private var state = KeyboardState.IDLE
+    private var backspaceHandler: Handler? = null
+    private var isBackspaceLongPress = false
+
+    private val backspaceRepeatRunnable = object : Runnable {
+        override fun run() {
+            onBackspace?.invoke()
+            backspaceHandler?.postDelayed(this, BACKSPACE_REPEAT_DELAY_MS)
+        }
+    }
 
     init {
         LayoutInflater.from(context).inflate(R.layout.keyboard_view, this, true)
@@ -38,6 +53,7 @@ class KeyboardView @JvmOverloads constructor(
         micButton = findViewById(R.id.micButton)
         statusText = findViewById(R.id.statusText)
         switchKeyboardButton = findViewById(R.id.switchKeyboardButton)
+        backspaceButton = findViewById(R.id.backspaceButton)
 
         micButton.setOnTouchListener { _, event ->
             when (event.action) {
@@ -62,6 +78,26 @@ class KeyboardView @JvmOverloads constructor(
         switchKeyboardButton.setOnClickListener {
             onSwitchKeyboard?.invoke()
         }
+
+        backspaceButton.setOnClickListener {
+            if (!isBackspaceLongPress) {
+                onBackspace?.invoke()
+            }
+            isBackspaceLongPress = false
+        }
+
+        backspaceButton.setOnLongClickListener {
+            isBackspaceLongPress = true
+            startBackspaceRepeat()
+            true
+        }
+
+        backspaceButton.setOnTouchListener { _, event ->
+            if (event.action == MotionEvent.ACTION_UP || event.action == MotionEvent.ACTION_CANCEL) {
+                stopBackspaceRepeat()
+            }
+            false
+        }
     }
 
     fun setState(newState: KeyboardState) {
@@ -85,5 +121,16 @@ class KeyboardView @JvmOverloads constructor(
                 waveformView.clear()
             }
         }
+    }
+
+    private fun startBackspaceRepeat() {
+        backspaceHandler = Handler(Looper.getMainLooper())
+        onBackspace?.invoke()
+        backspaceHandler?.postDelayed(backspaceRepeatRunnable, BACKSPACE_REPEAT_DELAY_MS)
+    }
+
+    private fun stopBackspaceRepeat() {
+        backspaceHandler?.removeCallbacks(backspaceRepeatRunnable)
+        backspaceHandler = null
     }
 }
