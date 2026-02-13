@@ -21,7 +21,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 private const val LOG_TAG = "SetupActivity"
-private const val MODEL_URL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin"
+private const val MODEL_URL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base-q5_1.bin"
 private const val REQUEST_RECORD_AUDIO = 100
 
 class SetupActivity : AppCompatActivity() {
@@ -80,6 +80,10 @@ class SetupActivity : AppCompatActivity() {
             val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showInputMethodPicker()
         }
+
+        // Clean up old model files from previous versions
+        File(filesDir, "ggml-tiny.bin").delete()
+        File(filesDir, "ggml-tiny-q5_1.bin").delete()
 
         // Auto-start model download if not yet done
         if (!WhisperTranscriber.isModelDownloaded(this)) {
@@ -168,8 +172,8 @@ class SetupActivity : AppCompatActivity() {
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val modelFile = File(filesDir, "ggml-tiny-q5_1.bin")
-                    val tmpFile = File(filesDir, "ggml-tiny-q5_1.bin.tmp")
+                    val modelFile = File(filesDir, "ggml-base-q5_1.bin")
+                    val tmpFile = File(filesDir, "ggml-base-q5_1.bin.tmp")
 
                     val url = URL(MODEL_URL)
                     val connection = url.openConnection() as HttpURLConnection
