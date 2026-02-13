@@ -53,7 +53,8 @@ class WaveformView @JvmOverloads constructor(
             val idx = if (barCount < MAX_BARS) i else (writeIndex + i) % MAX_BARS
             val amp = amplitudes[idx]
             val barHeight = (amp * h * 3f).coerceAtMost(h) // Amplify for visibility
-            val left = i * barWidth
+            // Right-align: newest bar at right edge, older bars pushed left
+            val left = w - (barCount - i) * barWidth
             val top = h - barHeight
             canvas.drawRoundRect(left, top, left + drawBarWidth, h, 2f, 2f, barPaint)
         }
