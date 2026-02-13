@@ -85,7 +85,7 @@ class TontextIMEService : InputMethodService() {
                     transcriber?.transcribe(audioData) ?: ""
                 }
                 if (result.isNotBlank()) {
-                    currentInputConnection?.commitText(result, 1)
+                    currentInputConnection?.commitText("$result ", 1)
                     Log.d(LOG_TAG, "Committed text: $result")
                 }
             } catch (e: CancellationException) {
