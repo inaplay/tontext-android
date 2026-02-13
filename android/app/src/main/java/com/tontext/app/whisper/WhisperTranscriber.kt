@@ -6,7 +6,7 @@ import com.whispercpp.whisper.WhisperContext
 import java.io.File
 
 private const val LOG_TAG = "WhisperTranscriber"
-private const val MODEL_FILENAME = "ggml-tiny.bin"
+private const val MODEL_FILENAME = "ggml-tiny-q5_1.bin"
 
 class WhisperTranscriber(private val context: Context) {
     private var whisperContext: WhisperContext? = null

@@ -48,7 +48,10 @@ Java_com_whispercpp_whisper_WhisperLib_00024Companion_fullTranscribe(
     params.n_threads        = num_threads;
     params.offset_ms        = 0;
     params.no_context       = true;
-    params.single_segment   = false;
+    params.single_segment   = true;
+    params.no_timestamps    = true;
+    params.greedy.best_of   = 1;
+    params.suppress_blank   = true;
 
     LOGI("Running whisper_full with %d threads, %d samples", num_threads, audio_data_length);
     if (whisper_full(context, params, audio_data_arr, audio_data_length) != 0) {

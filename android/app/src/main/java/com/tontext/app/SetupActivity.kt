@@ -21,7 +21,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 private const val LOG_TAG = "SetupActivity"
-private const val MODEL_URL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.bin"
+private const val MODEL_URL = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin"
 private const val REQUEST_RECORD_AUDIO = 100
 
 class SetupActivity : AppCompatActivity() {
@@ -32,6 +32,7 @@ class SetupActivity : AppCompatActivity() {
     private lateinit var stepPermissionStatus: TextView
     private lateinit var stepEnableStatus: TextView
     private lateinit var stepSelectStatus: TextView
+    private lateinit var setupComplete: LinearLayout
     private lateinit var versionText: TextView
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -46,9 +47,15 @@ class SetupActivity : AppCompatActivity() {
         stepPermissionStatus = findViewById(R.id.stepPermissionStatus)
         stepEnableStatus = findViewById(R.id.stepEnableStatus)
         stepSelectStatus = findViewById(R.id.stepSelectStatus)
+        setupComplete = findViewById(R.id.setupComplete)
         versionText = findViewById(R.id.versionText)
 
         versionText.text = "v${BuildConfig.VERSION_NAME}"
+
+        // Done button
+        findViewById<TextView>(R.id.btnDone).setOnClickListener {
+            finish()
+        }
 
         // Step 1: Download model
         findViewById<LinearLayout>(R.id.stepDownload).setOnClickListener {
@@ -109,6 +116,14 @@ class SetupActivity : AppCompatActivity() {
             stepSelectStatus.text = "\u2713"
             stepSelectStatus.setTextColor(getColor(R.color.accent))
         }
+
+        // All steps done
+        val allDone = WhisperTranscriber.isModelDownloaded(this)
+                && hasMicPermission()
+                && isImeEnabled()
+                && isImeSelected()
+
+        setupComplete.visibility = if (allDone) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     private fun hasMicPermission(): Boolean {
@@ -153,8 +168,8 @@ class SetupActivity : AppCompatActivity() {
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val modelFile = File(filesDir, "ggml-tiny.bin")
-                    val tmpFile = File(filesDir, "ggml-tiny.bin.tmp")
+                    val modelFile = File(filesDir, "ggml-tiny-q5_1.bin")
+                    val tmpFile = File(filesDir, "ggml-tiny-q5_1.bin.tmp")
 
                     val url = URL(MODEL_URL)
                     val connection = url.openConnection() as HttpURLConnection
