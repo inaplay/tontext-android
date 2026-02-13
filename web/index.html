@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tontext - Voice-to-Text Keyboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main>
+        <div class="card">
+            <div class="logo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="#E94560">
+                    <path d="M12,14c1.66,0 2.99,-1.34 2.99,-3L15,5c0,-1.66 -1.34,-3 -3,-3S9,3.34 9,5v6c0,1.66 1.34,3 3,3zM17.3,11c0,3 -2.54,5.1 -5.3,5.1S6.7,14 6.7,11H5c0,3.41 2.72,6.23 6,6.72V21h2v-3.28c3.28,-0.48 6,-3.3 6,-6.72h-1.7z"/>
+                </svg>
+            </div>
+            <h1>Tontext</h1>
+            <p class="tagline">An Android keyboard that converts your voice to text using on-device AI. No internet required.</p>
+            <a href="/api/download/latest" class="download-btn">
+                <span class="download-icon">&#11015;</span>
+                Download APK
+                <span class="version" id="version"></span>
+            </a>
+        </div>
+    </main>
+    <script>
+        fetch('/api/version')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('version').textContent = 'v' + data.version;
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>
