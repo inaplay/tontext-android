@@ -36,7 +36,7 @@ android {
         jvmTarget = "17"
     }
 
-    ndkVersion = "26.1.10909125"
+    ndkVersion = "27.1.12297006"
 
     externalNativeBuild {
         cmake {
