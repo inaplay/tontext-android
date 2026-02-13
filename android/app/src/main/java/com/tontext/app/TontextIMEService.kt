@@ -6,7 +6,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
+import android.os.Build
 import com.tontext.app.audio.AudioRecorder
 import com.tontext.app.ui.KeyboardState
 import com.tontext.app.ui.KeyboardView
@@ -30,6 +30,7 @@ class TontextIMEService : InputMethodService() {
             onRecordStop = { stopRecordingAndTranscribe() }
             onCancelTranscription = { cancelTranscription() }
             onSwitchKeyboard = { switchToNextKeyboard() }
+            onBackspace = { deleteOneCharacter() }
         }
 
         // Lazily init transcriber
@@ -107,9 +108,19 @@ class TontextIMEService : InputMethodService() {
         Log.d(LOG_TAG, "Transcription cancelled by user")
     }
 
+    private fun deleteOneCharacter() {
+        currentInputConnection?.deleteSurroundingText(1, 0)
+    }
+
     private fun switchToNextKeyboard() {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.showInputMethodPicker()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val switched = switchToPreviousInputMethod()
+            if (!switched) {
+                switchToNextInputMethod(false)
+            }
+        } else {
+            switchToNextInputMethod(false)
+        }
     }
 
     override fun onDestroy() {
