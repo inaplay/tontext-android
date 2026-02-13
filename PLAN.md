@@ -57,8 +57,7 @@ tontext-android/
 │       └── admin.html          # Admin stats dashboard
 ├── deploy/                     # Deployment configuration
 │   ├── docker-compose.yml      # Backend + web serving
-│   ├── nginx.conf              # Reverse proxy config (alongside existing NetCAP project)
-│   └── caddy/                  # Alternative if using Caddy
+│   └── nginx.conf              # Reverse proxy config for tontext subdomain
 ├── .github/
 │   └── workflows/
 │       └── build-and-deploy.yml  # CI/CD pipeline
@@ -85,12 +84,9 @@ tontext-android/
   - `CMakeLists.txt` - Build with NEON/FP16 optimizations for ARM
 - NDK version: 26.1.10909125 (or latest stable)
 - ABI filters: `arm64-v8a`, `armeabi-v7a`
-- Ship with `ggml-tiny.en.bin` model (75 MiB) bundled in assets (or downloaded on first run to save APK size)
+- Ship with `ggml-tiny.bin` model (75 MiB, multilingual, ~99 languages)
 
-**Decision: Model delivery strategy**
-- Option A: Bundle model in APK assets (~75 MiB added to APK size)
-- Option B: Download model on first launch (smaller APK, requires network once)
-- **Recommendation: Option B** - download on first launch with progress indicator in SetupActivity. Store in app internal storage. This keeps the APK under 10 MiB.
+**Model delivery:** Download on first launch from Netcup server with progress indicator in SetupActivity. Store in app internal storage. This keeps the APK under 10 MiB. The model file is hosted at `https://tontext.{domain}/api/model/ggml-tiny.bin`.
 
 ### 1.3 IME Service (`TontextIMEService.kt`)
 - Extends `InputMethodService`
@@ -237,7 +233,7 @@ CREATE TABLE downloads (
    - Upload APK as build artifact
 
 2. **Deploy to Server**
-   - SSH into NetCAP server (credentials as GitHub secrets)
+   - SSH into Netcup server (credentials as GitHub secrets)
    - Upload APK to `releases/` directory with version-stamped name
    - Update `latest.json` or symlink
    - Copy updated web files to serving directory
@@ -251,7 +247,7 @@ CREATE TABLE downloads (
 
 ---
 
-## Phase 5: Deployment on NetCAP Server
+## Phase 5: Deployment on Netcup Server
 
 ### 5.1 Docker Compose (`deploy/docker-compose.yml`)
 - **Service: `backend`** - Python FastAPI app, exposes port 8000 internally
@@ -259,11 +255,13 @@ CREATE TABLE downloads (
 - Volumes: `./releases:/app/releases`, `./data:/app/data` (SQLite DB)
 
 ### 5.2 Nginx Configuration
-- Reverse proxy alongside existing NetCAP project
-- Route `/tontext/` → static web files
-- Route `/tontext/api/` → FastAPI backend
-- Route `/tontext/admin` → FastAPI admin page
-- Or use a subdomain: `tontext.{your-domain}`
+- Subdomain: `tontext.{your-domain}` (separate from existing project)
+- Reverse proxy config for the tontext subdomain:
+  - `/` → static web files (index.html, style.css)
+  - `/api/` → FastAPI backend (download, version, stats, model hosting)
+  - `/admin` → FastAPI admin page
+- SSL via Let's Encrypt (certbot) for the subdomain
+- Existing project on the Netcup server remains untouched on its own domain/subdomain
 
 ### 5.3 Environment Variables
 ```
@@ -311,20 +309,20 @@ RELEASES_DIR=/app/releases
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Whisper library | whisper.cpp via JNI | Most mature Android integration, official example available |
-| Model | ggml-tiny.en (75 MiB) | Best speed/size for mobile, adequate accuracy for clear speech |
+| Model | ggml-tiny.bin (75 MiB, multilingual) | Best speed/size for mobile, supports ~99 languages |
 | Model delivery | Download on first launch | Keeps APK small (<10 MiB vs ~85 MiB) |
 | UI framework | Android Views (XML) | Simpler for IME, no Compose lifecycle complexity |
 | Backend | FastAPI + SQLite | Lightweight, single-file, no external DB dependency |
 | Web | Static HTML/CSS | No build step, instant load, trivial to maintain |
-| Deployment | Docker Compose + Nginx | Consistent with existing NetCAP setup |
+| Deployment | Docker Compose + Nginx | Consistent with existing Netcup server Docker setup |
 | CI/CD | GitHub Actions | Standard, free for public repos |
 
 ---
 
-## Open Questions for User
+## Resolved Decisions
 
-1. **Language support**: English-only (`tiny.en`) or multilingual (`tiny`)? Multilingual adds support for ~99 languages but is slightly less accurate for English.
-2. **Domain/routing**: Subdomain (`tontext.example.com`) or path prefix (`example.com/tontext/`)? This affects nginx config.
-3. **APK signing**: Do you have an existing Android signing keystore, or should we generate one?
-4. **NetCAP server access**: How is deployment done today for the existing project? SSH? Docker? This informs the CI/CD deploy step.
-5. **Model download source**: Host the Whisper model on the same server, or use Hugging Face CDN?
+1. **Language support**: Multilingual (`ggml-tiny.bin`) — supports ~99 languages
+2. **Domain/routing**: Subdomain (`tontext.{domain}`)
+3. **APK signing**: Generate new keystore during project setup
+4. **Server**: Netcup root server, Docker-based deployment (alongside existing Docker project)
+5. **Model hosting**: Served from the Netcup server itself
