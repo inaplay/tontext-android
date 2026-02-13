@@ -116,7 +116,7 @@ tontext-android/
 - Custom `View` with `onDraw()` override
 - Draws vertical bars representing audio amplitude
 - Rolling buffer of ~100 most recent amplitude samples
-- Bars drawn from center outward (mirrored top/bottom)
+- Single row of bars growing upward from bottom of the waveform area
 - Color: accent color (e.g., #E94560)
 - `addAmplitude(value: Float)` called from recording thread via handler
 
