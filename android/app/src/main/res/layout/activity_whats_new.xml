@@ -3,93 +3,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background_dark"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="24dp">
 
-    <!-- Top bar with Skip -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="end"
-        android:padding="16dp">
-
-        <TextView
-            android:id="@+id/btnSkip"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:text="@string/whats_new_skip"
-            android:textColor="@color/text_secondary"
-            android:textSize="14sp" />
-    </LinearLayout>
-
-    <!-- Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="24dp"
         android:text="What\u2019s New"
         android:textColor="@color/text_primary"
         android:textSize="24sp"
         android:textStyle="bold" />
 
-    <!-- ViewPager2 -->
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1">
 
-    <!-- Bottom section: dots + buttons -->
-    <LinearLayout
-        android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/changelogText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:lineSpacingExtra="4dp" />
+    </ScrollView>
+
+    <TextView
+        android:id="@+id/btnDone"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:orientation="vertical"
-        android:paddingBottom="32dp">
-
-        <!-- Dot indicators -->
-        <LinearLayout
-            android:id="@+id/dotContainer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Next button -->
-        <TextView
-            android:id="@+id/btnNext"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/step_card_bg"
-            android:paddingStart="48dp"
-            android:paddingEnd="48dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
-            android:text="@string/whats_new_next"
-            android:textColor="@color/accent"
-            android:textSize="16sp"
-            android:textStyle="bold" />
-
-        <!-- Done button -->
-        <TextView
-            android:id="@+id/btnDone"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/step_card_bg"
-            android:paddingStart="48dp"
-            android:paddingEnd="48dp"
-            android:paddingTop="14dp"
-            android:paddingBottom="14dp"
-            android:text="@string/whats_new_done"
-            android:textColor="@color/accent"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
-    </LinearLayout>
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/step_card_bg"
+        android:paddingStart="48dp"
+        android:paddingEnd="48dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="14dp"
+        android:text="@string/whats_new_done"
+        android:textColor="@color/accent"
+        android:textSize="16sp"
+        android:textStyle="bold" />
 
 </LinearLayout>

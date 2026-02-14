@@ -48,17 +48,11 @@ class SetupActivity : AppCompatActivity() {
 
         when {
             lastSeen == 0 -> {
-                // First install — store version, skip wizard
                 prefs.lastSeenVersionCode = currentVersionCode
             }
             lastSeen < currentVersionCode -> {
-                // Updated — show What's New wizard
-                val intent = Intent(this, WhatsNewActivity::class.java).apply {
-                    putExtra(WhatsNewActivity.EXTRA_LAST_SEEN_VERSION_CODE, lastSeen)
-                }
-                startActivity(intent)
+                startActivity(Intent(this, WhatsNewActivity::class.java))
             }
-            // Same version — proceed normally
         }
 
         setContentView(R.layout.activity_setup)

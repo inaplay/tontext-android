@@ -27,7 +27,5 @@
     <string name="settings_test_no_key">Please enter an API key first</string>
 
     <!-- What's New -->
-    <string name="whats_new_skip">Skip</string>
-    <string name="whats_new_next">Next</string>
-    <string name="whats_new_done">Let\u2019s Go!</string>
+    <string name="whats_new_done">Got it!</string>
 </resources>
