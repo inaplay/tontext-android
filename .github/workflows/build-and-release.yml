@@ -1,52 +1,13 @@
-name: Build and Release APK
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - "android/**"
-
-permissions:
-  contents: write
-
-jobs:
-  build-and-release:
-    runs-on: [self-hosted, linux, android]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Extract version
-        id: version
+# Define a job to generate changelog.json 
+      - name: Generate Changelog
         run: |
-          VERSION=$(grep 'versionName' android/app/build.gradle.kts | head -1 | grep -oP '"[^"]*"' | tr -d '"')
-          echo "name=$VERSION" >> $GITHUB_OUTPUT
-          echo "tag=v${VERSION}-build.${{ github.run_number }}" >> $GITHUB_OUTPUT
-
-      - name: Build release APK
-        working-directory: android
-        run: ./gradlew assembleRelease
-
-      - name: Rename APK
-        run: |
-          mv android/app/build/outputs/apk/release/app-release.apk \
-            tontext-${{ steps.version.outputs.tag }}.apk
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "TonText ${{ steps.version.outputs.name }} (Build #${{ github.run_number }})"
-          body: |
-            Automated build from commit ${{ github.sha }}.
-
-            **Commit:** `${{ github.event.head_commit.message }}`
-          files: tontext-${{ steps.version.outputs.tag }}.apk
-          generate_release_notes: false
-
-      - name: Upload APK to TonText backend
-        run: |
-          curl -f -u "${{ secrets.TONTEXT_ADMIN_USER }}:${{ secrets.TONTEXT_ADMIN_PASSWORD }}" \
-            -F "file=@tontext-${{ steps.version.outputs.tag }}.apk" \
-            https://tontext.app/api/releases/upload
+          git fetch --prune --unshallow
+          last_tag=$(git describe --tags --abbrev=0)
+          commits=$(git log --oneline $last_tag..HEAD)
+          echo "[{" > changelog.json
+          for commit in $commits; do
+            echo "    \"message\": \"$commit\"," >> changelog.json
+          done
+          echo "}]" >> changelog.json
+          mkdir -p android/app/src/main/assets
+          mv changelog.json android/app/src/main/assets/changelog.json
