@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="270dp"
+    android:layout_height="405dp"
     android:orientation="vertical"
     android:background="@color/background_dark">
 
@@ -70,8 +70,8 @@
         <!-- Right: Backspace -->
         <ImageButton
             android:id="@+id/backspaceButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Backspace"
             android:scaleType="center"
