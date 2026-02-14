@@ -4,4 +4,5 @@
     <string name="recording">Recording</string>
     <string name="release_to_cancel">Release to cancel</string>
     <string name="transcribing">Transcribing\u2026</string>
+    <string name="blank_audio">[Blank audio]</string>
 </resources>

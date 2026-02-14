@@ -142,15 +142,23 @@ class TonTextIMEService : InputMethodService() {
                 val result = withContext(Dispatchers.IO) {
                     transcriber?.transcribe(audioData) ?: ""
                 }
-                if (result.isNotBlank()) {
+                if (result.isNotBlank() && !isBlankAudio(result)) {
                     currentInputConnection?.commitText("$result ", 1)
                     Log.d(LOG_TAG, "Committed text: $result")
+                    transitionTo(KeyboardState.IDLE)
+                } else if (isBlankAudio(result)) {
+                    Log.d(LOG_TAG, "Blank audio detected, showing briefly")
+                    keyboardView?.showBlankAudioBriefly {
+                        transitionTo(KeyboardState.IDLE)
+                    }
+                } else {
+                    transitionTo(KeyboardState.IDLE)
                 }
             } catch (e: CancellationException) {
                 Log.d(LOG_TAG, "Transcription cancelled")
+                transitionTo(KeyboardState.IDLE)
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Transcription failed", e)
-            } finally {
                 transitionTo(KeyboardState.IDLE)
             }
         }
@@ -189,6 +197,11 @@ class TonTextIMEService : InputMethodService() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         startActivity(intent)
+    }
+
+    private fun isBlankAudio(text: String): Boolean {
+        val trimmed = text.trim().lowercase()
+        return trimmed == "[blank audio]" || trimmed == "[blank_audio]"
     }
 
     private fun switchToNextKeyboard() {
