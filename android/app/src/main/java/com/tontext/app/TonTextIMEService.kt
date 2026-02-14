@@ -188,11 +188,13 @@ class TonTextIMEService : InputMethodService() {
     private fun sendReturnKey() {
         currentInputConnection?.let { ic ->
             val editorInfo = currentInputEditorInfo
-            val actionId = editorInfo?.imeOptions?.and(
-                android.view.inputmethod.EditorInfo.IME_MASK_ACTION
-            ) ?: android.view.inputmethod.EditorInfo.IME_ACTION_NONE
+            val imeOptions = editorInfo?.imeOptions ?: 0
+            val actionId = imeOptions and android.view.inputmethod.EditorInfo.IME_MASK_ACTION
+            val hasNoEnterAction = (imeOptions and android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0
 
-            if (actionId != android.view.inputmethod.EditorInfo.IME_ACTION_NONE) {
+            if (!hasNoEnterAction
+                && actionId != android.view.inputmethod.EditorInfo.IME_ACTION_NONE
+                && actionId != android.view.inputmethod.EditorInfo.IME_ACTION_UNSPECIFIED) {
                 ic.performEditorAction(actionId)
             } else {
                 sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
