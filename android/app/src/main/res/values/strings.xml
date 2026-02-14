@@ -17,6 +17,9 @@
     <string name="settings_api_key_title">API Key</string>
     <string name="settings_api_key_description">Your key is encrypted and stored locally on this device</string>
     <string name="settings_api_key_hint">Enter your API key</string>
+    <string name="settings_system_prompt_title">System Prompt</string>
+    <string name="settings_system_prompt_description">Custom instructions for the LLM. Leave empty to use the default prompt. Context-aware hints (app, field type) are appended automatically.</string>
+    <string name="settings_system_prompt_hint">e.g. Fix punctuation, keep it casual\u2026</string>
     <string name="settings_test_connection">Test Connection</string>
     <string name="settings_test_testing">Testing\u2026</string>
     <string name="settings_test_success">Connection successful!</string>
