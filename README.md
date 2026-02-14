@@ -21,36 +21,47 @@ Development is fully AI-assisted using [Claude Code](https://claude.com/claude-c
 
 ### The Development Cycle
 
-```
- Developer                Claude Code             GitHub                  Servers
- ─────────                ───────────             ──────                  ───────
+```mermaid
+graph TD
+    subgraph Developer
+        A[Describe a product change]
+    end
 
- Describe a
- product change ────────► Explores codebase
-                          Writes code
-                          Commits & pushes ──────► Push to main triggers
-                                                  GitHub Actions
-                                                        │
-                                        ┌───────────────┼───────────────┐
-                                        ▼               ▼               ▼
-                                   android/**      backend/**        web/**
-                                   changed?        changed?          changed?
-                                        │               │               │
-                                        ▼               ▼               ▼
-                                  Build APK on    rsync + Docker    rsync to
-                                  self-hosted     Compose rebuild   /var/www/tontext
-                                  runner server   on web server     + nginx reload
-                                        │               │               │
-                                        ▼               ▼               ▼
-                                  GitHub Release  Backend live at   Website live at
-                                  with APK        tontext.app/api   tontext.app
-                                        │
-                                        ▼
-                                  Obtainium on
-                                  Android phone
-                                  detects new
-                                  release, auto-
-                                  installs APK
+    subgraph Claude_Code [Claude Code]
+        B[Explores codebase]
+        C[Writes code]
+        D[Commits & pushes]
+    end
+
+    subgraph GitHub
+        E[Push to main triggers<br/>GitHub Actions]
+        F1{android/**<br/>changed?}
+        F2{backend/**<br/>changed?}
+        F3{web/**<br/>changed?}
+    end
+
+    subgraph Servers
+        G1[Build APK on<br/>self-hosted runner]
+        G2[rsync + Docker<br/>Compose rebuild]
+        G3[rsync to /var/www/tontext<br/>+ nginx reload]
+        H1[GitHub Release<br/>with APK]
+        H2[Backend live at<br/>tontext.app/api]
+        H3[Website live at<br/>tontext.app]
+        I1[Obtainium detects release,<br/>auto-installs APK]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+
+    E --> F1
+    E --> F2
+    E --> F3
+
+    F1 --> G1 --> H1 --> I1
+    F2 --> G2 --> H2
+    F3 --> G3 --> H3
 ```
 
 ### Step by Step
