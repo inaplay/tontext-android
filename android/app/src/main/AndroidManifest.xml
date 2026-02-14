@@ -24,6 +24,11 @@
         </activity>
 
         <activity
+            android:name=".whatsnew.WhatsNewActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TonText" />
+
+        <activity
             android:name=".SettingsActivity"
             android:exported="false"
             android:theme="@style/Theme.TonText" />
