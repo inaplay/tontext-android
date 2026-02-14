@@ -1,4 +1,5 @@
 import hashlib
+import io
 import os
 import re
 import sqlite3
@@ -6,19 +7,48 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.templating import Jinja2Templates
+from minio import Minio
 
 app = FastAPI(title="Tontext Backend")
 security = HTTPBasic()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 DATABASE_PATH = os.environ.get("DATABASE_PATH", "data/tontext.db")
-RELEASES_DIR = os.environ.get("RELEASES_DIR", "releases")
 ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
+
+MINIO_ENDPOINT = os.environ.get("MINIO_ENDPOINT", "minio:9000")
+MINIO_ROOT_USER = os.environ.get("MINIO_ROOT_USER", "minioadmin")
+MINIO_ROOT_PASSWORD = os.environ.get("MINIO_ROOT_PASSWORD", "minioadmin")
+MINIO_BUCKET = os.environ.get("MINIO_BUCKET", "tontext")
+STORAGE_BASE_URL = os.environ.get("STORAGE_BASE_URL", "/storage")
+
+minio_client = Minio(
+    MINIO_ENDPOINT,
+    access_key=MINIO_ROOT_USER,
+    secret_key=MINIO_ROOT_PASSWORD,
+    secure=False,
+)
+
+
+def ensure_bucket():
+    if not minio_client.bucket_exists(MINIO_BUCKET):
+        minio_client.make_bucket(MINIO_BUCKET)
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [{
+                "Effect": "Allow",
+                "Principal": {"AWS": ["*"]},
+                "Action": ["s3:GetObject"],
+                "Resource": [f"arn:aws:s3:::{MINIO_BUCKET}/*"],
+            }],
+        }
+        import json
+        minio_client.set_bucket_policy(MINIO_BUCKET, json.dumps(policy))
 
 
 def init_db():
@@ -46,14 +76,16 @@ def get_db():
         conn.close()
 
 
-def get_latest_version() -> tuple[str, Path] | None:
-    releases = Path(RELEASES_DIR)
-    if not releases.exists():
-        return None
-    apks = sorted(releases.glob("tontext-v*.apk"), reverse=True)
+def get_latest_version() -> tuple[str, str] | None:
+    """Returns (version_string, object_name) or None."""
+    objects = list(minio_client.list_objects(MINIO_BUCKET, prefix="releases/tontext-v"))
+    apks = sorted(
+        [obj.object_name for obj in objects if obj.object_name.endswith(".apk")],
+        reverse=True,
+    )
     if not apks:
         return None
-    match = re.search(r"tontext-v(.+)\.apk", apks[0].name)
+    match = re.search(r"tontext-v(.+)\.apk", apks[0])
     if not match:
         return None
     return match.group(1), apks[0]
@@ -68,6 +100,7 @@ def verify_admin(credentials: HTTPBasicCredentials = Depends(security)):
 @app.on_event("startup")
 def startup():
     init_db()
+    ensure_bucket()
 
 
 @app.get("/api/version")
@@ -85,7 +118,7 @@ def download_latest(request: Request):
     if not result:
         raise HTTPException(status_code=404, detail="No release available")
 
-    version, apk_path = result
+    version, object_name = result
 
     # Record download
     ip_hash = hashlib.sha256(
@@ -99,19 +132,52 @@ def download_latest(request: Request):
             (version, ip_hash, user_agent),
         )
 
-    return FileResponse(
-        path=str(apk_path),
-        filename=f"tontext-v{version}.apk",
-        media_type="application/vnd.android.package-archive",
+    # Redirect to nginx-proxied MinIO URL for direct download
+    return RedirectResponse(
+        url=f"{STORAGE_BASE_URL}/{object_name}",
+        status_code=302,
     )
 
 
 @app.get("/api/model/{filename}")
 def serve_model(filename: str):
-    model_path = Path(RELEASES_DIR) / filename
-    if not model_path.exists() or not model_path.name.endswith(".bin"):
+    if not filename.endswith(".bin"):
         raise HTTPException(status_code=404, detail="Model not found")
-    return FileResponse(path=str(model_path), filename=filename)
+    object_name = f"models/{filename}"
+    try:
+        minio_client.stat_object(MINIO_BUCKET, object_name)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return RedirectResponse(
+        url=f"{STORAGE_BASE_URL}/{object_name}",
+        status_code=302,
+    )
+
+
+@app.post("/api/releases/upload")
+def upload_release(
+    file: UploadFile,
+    credentials: HTTPBasicCredentials = Depends(verify_admin),
+):
+    if not file.filename or not file.filename.endswith(".apk"):
+        raise HTTPException(status_code=400, detail="File must be an .apk")
+    if not re.match(r"tontext-v.+\.apk", file.filename):
+        raise HTTPException(status_code=400, detail="Filename must match tontext-v*.apk")
+
+    object_name = f"releases/{file.filename}"
+    data = file.file.read()
+    minio_client.put_object(
+        MINIO_BUCKET,
+        object_name,
+        io.BytesIO(data),
+        length=len(data),
+        content_type="application/vnd.android.package-archive",
+    )
+
+    match = re.search(r"tontext-v(.+)\.apk", file.filename)
+    version = match.group(1) if match else file.filename
+
+    return JSONResponse({"status": "ok", "version": version, "object": object_name})
 
 
 @app.get("/api/stats")
