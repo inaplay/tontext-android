@@ -3,6 +3,8 @@ name: Build and Release APK
 on:
   push:
     branches: [main]
+    paths:
+      - "android/**"
 
 permissions:
   contents: write
@@ -42,3 +44,9 @@ jobs:
             **Commit:** `${{ github.event.head_commit.message }}`
           files: tontext-${{ steps.version.outputs.tag }}.apk
           generate_release_notes: false
+
+      - name: Upload APK to Tontext backend
+        run: |
+          curl -f -u "${{ secrets.TONTEXT_ADMIN_USER }}:${{ secrets.TONTEXT_ADMIN_PASSWORD }}" \
+            -F "file=@tontext-${{ steps.version.outputs.tag }}.apk" \
+            https://tontext.app/api/releases/upload
