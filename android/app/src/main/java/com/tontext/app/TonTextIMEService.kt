@@ -204,7 +204,7 @@ class TonTextIMEService : InputMethodService() {
 
     private fun startHealing(rawText: String, inputContext: InputContext) {
         transitionTo(KeyboardState.HEALING)
-        val systemPrompt = PromptBuilder.buildSystemPrompt(inputContext)
+        val systemPrompt = PromptBuilder.buildSystemPrompt(inputContext, healingPreferences.systemPrompt)
         val provider = healingPreferences.llmProvider
         val apiKey = healingPreferences.apiKey
 

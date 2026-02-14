@@ -31,6 +31,10 @@ class HealingPreferences(context: Context) {
         get() = decryptApiKey()
         set(value) = encryptApiKey(value)
 
+    var systemPrompt: String
+        get() = prefs.getString(HealingConfig.PREF_SYSTEM_PROMPT, "") ?: ""
+        set(value) = prefs.edit().putString(HealingConfig.PREF_SYSTEM_PROMPT, value).apply()
+
     val isConfigured: Boolean
         get() = healingEnabled && apiKey.isNotEmpty()
 

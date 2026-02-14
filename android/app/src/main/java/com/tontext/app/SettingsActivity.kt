@@ -34,12 +34,13 @@ class SettingsActivity : AppCompatActivity() {
         val providerAnthropic = findViewById<RadioButton>(R.id.providerAnthropic)
         val providerOpenAI = findViewById<RadioButton>(R.id.providerOpenAI)
         val apiKeyInput = findViewById<EditText>(R.id.apiKeyInput)
+        val systemPromptInput = findViewById<EditText>(R.id.systemPromptInput)
         val testButton = findViewById<Button>(R.id.testConnectionButton)
         val testResultText = findViewById<TextView>(R.id.testResultText)
 
         // Back button
         findViewById<android.widget.ImageButton>(R.id.backButton).setOnClickListener {
-            saveApiKey(apiKeyInput)
+            saveSettings(apiKeyInput, systemPromptInput)
             finish()
         }
 
@@ -55,6 +56,11 @@ class SettingsActivity : AppCompatActivity() {
         val existingKey = healingPreferences.apiKey
         if (existingKey.isNotEmpty()) {
             apiKeyInput.setText(existingKey)
+        }
+
+        val existingPrompt = healingPreferences.systemPrompt
+        if (existingPrompt.isNotEmpty()) {
+            systemPromptInput.setText(existingPrompt)
         }
 
         // Toggle healing on/off
@@ -74,7 +80,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Test connection
         testButton.setOnClickListener {
-            saveApiKey(apiKeyInput)
+            saveSettings(apiKeyInput, systemPromptInput)
             val apiKey = healingPreferences.apiKey
             if (apiKey.isEmpty()) {
                 testResultText.text = getString(R.string.settings_test_no_key)
@@ -108,16 +114,17 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveApiKey(apiKeyInput: EditText) {
+    private fun saveSettings(apiKeyInput: EditText, systemPromptInput: EditText) {
         val key = apiKeyInput.text.toString().trim()
         if (key.isNotEmpty()) {
             healingPreferences.apiKey = key
         }
+        healingPreferences.systemPrompt = systemPromptInput.text.toString().trim()
     }
 
     override fun onPause() {
         super.onPause()
-        saveApiKey(findViewById(R.id.apiKeyInput))
+        saveSettings(findViewById(R.id.apiKeyInput), findViewById(R.id.systemPromptInput))
     }
 
     override fun onDestroy() {

@@ -40,16 +40,11 @@ object PromptBuilder {
         "com.google.android.googlequicksearchbox" to "a Google search query",
     )
 
-    fun buildSystemPrompt(context: InputContext): String {
+    fun buildSystemPrompt(context: InputContext, customSystemPrompt: String = ""): String {
         val parts = mutableListOf<String>()
 
-        parts.add(
-            "You are a speech-to-text post-processor. " +
-            "Your job is to correct transcription errors in dictated text. " +
-            "Fix punctuation, capitalization, and obvious word errors. " +
-            "Return ONLY the corrected text — no explanations, no quotes, no prefixes. " +
-            "Preserve the original language of the input."
-        )
+        val basePrompt = if (customSystemPrompt.isNotBlank()) customSystemPrompt else HealingConfig.DEFAULT_SYSTEM_PROMPT
+        parts.add(basePrompt)
 
         val appHint = appContextMap[context.packageName]
         if (appHint != null) {
