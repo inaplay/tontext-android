@@ -38,8 +38,8 @@
         <!-- Left: Switch keyboard -->
         <ImageButton
             android:id="@+id/switchKeyboardButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Switch keyboard"
             android:scaleType="center"
