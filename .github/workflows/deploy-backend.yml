@@ -1,0 +1,48 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "deploy/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync backend source and deploy configs
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            backend/ \
+            deploy@${{ secrets.DEPLOY_HOST }}:/opt/tontext/backend/
+
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            deploy/docker-compose.prod.yml \
+            deploy@${{ secrets.DEPLOY_HOST }}:/opt/tontext/docker-compose.yml
+
+          rsync -avz \
+            -e "ssh -i ~/.ssh/id_ed25519" \
+            deploy/tontext.conf \
+            deploy@${{ secrets.DEPLOY_HOST }}:/opt/graphula/nginx/conf.d/tontext.conf
+
+      - name: Build and restart backend
+        run: |
+          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "cd /opt/tontext && docker compose up -d --build --force-recreate"
+
+      - name: Reload nginx
+        run: |
+          ssh -i ~/.ssh/id_ed25519 deploy@${{ secrets.DEPLOY_HOST }} \
+            "docker exec graphula-nginx nginx -s reload"
