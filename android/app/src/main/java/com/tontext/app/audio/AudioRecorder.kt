@@ -12,6 +12,7 @@ private const val LOG_TAG = "AudioRecorder"
 private const val SAMPLE_RATE = 16000
 private const val CHANNEL_CONFIG = AudioFormat.CHANNEL_IN_MONO
 private const val AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT
+private const val NOISE_GATE_THRESHOLD = 0.02f // Suppress ambient noise below this normalized RMS level
 
 class AudioRecorder {
     private var audioRecord: AudioRecord? = null
@@ -68,7 +69,9 @@ class AudioRecorder {
                     }
                     val rms = Math.sqrt(sum / read).toFloat()
                     val normalized = (rms / Short.MAX_VALUE).coerceIn(0f, 1f)
-                    amplitudeCallback?.invoke(normalized)
+                    // Apply noise gate: suppress background noise below threshold
+                    val gated = if (normalized < NOISE_GATE_THRESHOLD) 0f else normalized
+                    amplitudeCallback?.invoke(gated)
                 }
             }
         }.also { it.start() }
