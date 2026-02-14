@@ -23,6 +23,41 @@ class TonTextIMEService : InputMethodService() {
     private var transcriptionJob: Job? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private var currentState = KeyboardState.IDLE
+
+    private val allowedTransitions = mapOf(
+        KeyboardState.IDLE to setOf(KeyboardState.RECORDING),
+        KeyboardState.RECORDING to setOf(KeyboardState.TRANSCRIBING, KeyboardState.IDLE),
+        KeyboardState.TRANSCRIBING to setOf(KeyboardState.IDLE),
+    )
+
+    private fun transitionTo(newState: KeyboardState) {
+        if (newState == currentState) return
+        val allowed = allowedTransitions[currentState]
+        if (allowed == null || newState !in allowed) {
+            Log.w(LOG_TAG, "Invalid state transition: $currentState → $newState, ignoring")
+            return
+        }
+        Log.d(LOG_TAG, "State: $currentState → $newState")
+        currentState = newState
+        keyboardView?.setState(newState)
+    }
+
+    private fun forceIdle() {
+        if (currentState == KeyboardState.RECORDING) {
+            audioRecorder?.stop()
+            audioRecorder = null
+        }
+        if (currentState == KeyboardState.TRANSCRIBING) {
+            transcriptionJob?.cancel()
+            transcriptionJob = null
+        }
+        if (currentState != KeyboardState.IDLE) {
+            Log.d(LOG_TAG, "State: $currentState → IDLE (forced)")
+            currentState = KeyboardState.IDLE
+            keyboardView?.setState(KeyboardState.IDLE)
+        }
+    }
 
     override fun onCreateInputView(): View {
         keyboardView = KeyboardView(this).apply {
@@ -44,9 +79,23 @@ class TonTextIMEService : InputMethodService() {
         return keyboardView!!
     }
 
+    override fun onFinishInputView(finishingInput: Boolean) {
+        super.onFinishInputView(finishingInput)
+        forceIdle()
+    }
+
+    override fun onWindowHidden() {
+        super.onWindowHidden()
+        forceIdle()
+    }
+
     private fun startRecording() {
+        if (currentState != KeyboardState.IDLE) {
+            Log.w(LOG_TAG, "startRecording() ignored, currentState=$currentState")
+            return
+        }
+
         if (!WhisperTranscriber.isModelDownloaded(this)) {
-            // Model not downloaded yet, open setup
             val intent = Intent(this, SetupActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
@@ -54,7 +103,6 @@ class TonTextIMEService : InputMethodService() {
             return
         }
 
-        // Check if model is loaded, load it if not
         if (transcriber?.isModelLoaded != true) {
             serviceScope.launch(Dispatchers.IO) {
                 transcriber?.loadModel()
@@ -70,14 +118,19 @@ class TonTextIMEService : InputMethodService() {
             }
             start()
         }
-        keyboardView?.setState(KeyboardState.RECORDING)
+        transitionTo(KeyboardState.RECORDING)
         Log.d(LOG_TAG, "Recording started")
     }
 
     private fun stopRecordingAndTranscribe() {
+        if (currentState != KeyboardState.RECORDING) {
+            Log.w(LOG_TAG, "stopRecordingAndTranscribe() ignored, currentState=$currentState")
+            return
+        }
+
         val audioData = audioRecorder?.stop() ?: return
         audioRecorder = null
-        keyboardView?.setState(KeyboardState.TRANSCRIBING)
+        transitionTo(KeyboardState.TRANSCRIBING)
 
         Log.d(LOG_TAG, "Transcribing ${audioData.size} samples")
 
@@ -95,17 +148,17 @@ class TonTextIMEService : InputMethodService() {
             } catch (e: Exception) {
                 Log.e(LOG_TAG, "Transcription failed", e)
             } finally {
-                keyboardView?.setState(KeyboardState.IDLE)
+                transitionTo(KeyboardState.IDLE)
             }
         }
     }
 
     private fun cancelTranscription() {
-        transcriptionJob?.cancel()
-        transcriptionJob = null
-        audioRecorder?.stop()
-        audioRecorder = null
-        keyboardView?.setState(KeyboardState.IDLE)
+        if (currentState != KeyboardState.RECORDING && currentState != KeyboardState.TRANSCRIBING) {
+            Log.w(LOG_TAG, "cancelTranscription() ignored, currentState=$currentState")
+            return
+        }
+        forceIdle()
         Log.d(LOG_TAG, "Transcription cancelled by user")
     }
 
@@ -125,9 +178,9 @@ class TonTextIMEService : InputMethodService() {
     }
 
     override fun onDestroy() {
+        forceIdle()
         super.onDestroy()
         serviceScope.cancel()
-        audioRecorder?.stop()
         transcriber?.release()
     }
 }
