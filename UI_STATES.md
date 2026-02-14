@@ -1,4 +1,4 @@
-# Tontext UI States
+# TonText UI States
 
 ## Keyboard View (shown inside any app's text field)
 
@@ -144,7 +144,7 @@
 ```
 ┌─────────────────────────────────┐
 │                                 │
-│           Tontext               │
+│           TonText               │
 │    Voice-to-Text Keyboard       │
 │                                 │
 │  ┌───────────────────────────┐  │
@@ -184,7 +184,7 @@ After all steps completed:
 ┌──────────────────────────────────────────┐
 │                                          │
 │                                          │
-│              ◉  Tontext                  │
+│              ◉  TonText                  │
 │                                          │
 │   An Android keyboard that converts      │
 │   your voice to text using on-device     │
@@ -205,7 +205,7 @@ After all steps completed:
 
 ```
 ┌──────────────────────────────────────────────────────┐
-│  Tontext Admin                          [Refresh]    │
+│  TonText Admin                          [Refresh]    │
 ├──────────────────────────────────────────────────────┤
 │                                                      │
 │  Total Downloads: 1,247                              │

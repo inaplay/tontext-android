@@ -13,9 +13,9 @@ import com.tontext.app.ui.KeyboardView
 import com.tontext.app.whisper.WhisperTranscriber
 import kotlinx.coroutines.*
 
-private const val LOG_TAG = "TontextIME"
+private const val LOG_TAG = "TonTextIME"
 
-class TontextIMEService : InputMethodService() {
+class TonTextIMEService : InputMethodService() {
 
     private var keyboardView: KeyboardView? = null
     private var audioRecorder: AudioRecorder? = null

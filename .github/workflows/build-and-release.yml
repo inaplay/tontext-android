@@ -37,7 +37,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: "Tontext ${{ steps.version.outputs.name }} (Build #${{ github.run_number }})"
+          name: "TonText ${{ steps.version.outputs.name }} (Build #${{ github.run_number }})"
           body: |
             Automated build from commit ${{ github.sha }}.
 
@@ -45,7 +45,7 @@ jobs:
           files: tontext-${{ steps.version.outputs.tag }}.apk
           generate_release_notes: false
 
-      - name: Upload APK to Tontext backend
+      - name: Upload APK to TonText backend
         run: |
           curl -f -u "${{ secrets.TONTEXT_ADMIN_USER }}:${{ secrets.TONTEXT_ADMIN_PASSWORD }}" \
             -F "file=@tontext-${{ steps.version.outputs.tag }}.apk" \

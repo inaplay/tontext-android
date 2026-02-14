@@ -154,7 +154,7 @@ class SetupActivity : AppCompatActivity() {
 
     private fun isImeEnabled(): Boolean {
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        val imeId = ComponentName(this, TontextIMEService::class.java).flattenToShortString()
+        val imeId = ComponentName(this, TonTextIMEService::class.java).flattenToShortString()
         return imm.enabledInputMethodList.any {
             it.id.contains(packageName)
         }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Tontext" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.TonText" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/accent</item>
         <item name="colorPrimaryVariant">@color/accent_pressed</item>
         <item name="colorOnPrimary">@color/text_primary</item>
@@ -9,7 +9,7 @@
         <item name="android:navigationBarColor">@color/background_dark</item>
     </style>
 
-    <style name="Theme.Tontext.Transparent">
+    <style name="Theme.TonText.Transparent">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>

@@ -1,8 +1,8 @@
-# Tontext - Voice-to-Text Android Keyboard
+# TonText - Voice-to-Text Android Keyboard
 
 ## Overview
 
-Tontext is an Android Input Method Editor (IME) that replaces the traditional keyboard with a single microphone button. Press-and-hold records audio, release triggers local on-device transcription via whisper.cpp, and the transcribed text is committed to whatever text field is focused. The project is a mono-repo containing the Android app, a download website, a Python backend for download tracking, and CI/CD configuration.
+TonText is an Android Input Method Editor (IME) that replaces the traditional keyboard with a single microphone button. Press-and-hold records audio, release triggers local on-device transcription via whisper.cpp, and the transcribed text is committed to whatever text field is focused. The project is a mono-repo containing the Android app, a download website, a Python backend for download tracking, and CI/CD configuration.
 
 ---
 
@@ -14,7 +14,7 @@ tontext-android/
 │   ├── app/                    # Main application module
 │   │   ├── src/main/
 │   │   │   ├── java/com/tontext/app/
-│   │   │   │   ├── TontextIMEService.kt       # Core IME service
+│   │   │   │   ├── TonTextIMEService.kt        # Core IME service
 │   │   │   │   ├── SetupActivity.kt           # Onboarding + permissions
 │   │   │   │   ├── PermissionRequestActivity.kt # Transparent permission helper
 │   │   │   │   ├── ui/
@@ -88,7 +88,7 @@ tontext-android/
 
 **Model delivery:** Download on first launch from Netcup server with progress indicator in SetupActivity. Store in app internal storage. This keeps the APK under 10 MiB. The model file is hosted at `https://tontext.{domain}/api/model/ggml-tiny.bin`.
 
-### 1.3 IME Service (`TontextIMEService.kt`)
+### 1.3 IME Service (`TonTextIMEService.kt`)
 - Extends `InputMethodService`
 - `onCreateInputView()` inflates the keyboard layout
 - **Three UI states:**
@@ -133,8 +133,8 @@ tontext-android/
 - Guides user through:
   1. Download Whisper model (if not present) - progress bar
   2. Grant microphone permission
-  3. Enable Tontext IME in system settings (link to `Settings.ACTION_INPUT_METHOD_SETTINGS`)
-  4. Select Tontext as active keyboard (trigger `InputMethodManager.showInputMethodPicker()`)
+  3. Enable TonText IME in system settings (link to `Settings.ACTION_INPUT_METHOD_SETTINGS`)
+  4. Select TonText as active keyboard (trigger `InputMethodManager.showInputMethodPicker()`)
 - Simple step-by-step UI, each step has a status indicator (done/pending)
 
 ### 1.8 Permissions
@@ -155,8 +155,8 @@ tontext-android/
 ### 2.1 Static Site (`web/`)
 - Single `index.html` page
 - Content:
-  - App name "Tontext" with a small icon/logo
-  - 1-2 sentence description: "Tontext is an Android keyboard that converts your voice to text using on-device AI. No internet required for transcription."
+  - App name "TonText" with a small icon/logo
+  - 1-2 sentence description: "TonText is an Android keyboard that converts your voice to text using on-device AI. No internet required for transcription."
   - Download button that links to `/api/download/latest` (served by backend)
   - Current version number displayed below button
   - Small footer with version info

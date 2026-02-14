@@ -1,4 +1,4 @@
-# Tontext
+# TonText
 
 A privacy-focused Android voice keyboard. Press and hold the mic button, speak, release — your speech is transcribed locally on-device using [whisper.cpp](https://github.com/ggerganov/whisper.cpp). No internet required for transcription, no data leaves your phone.
 

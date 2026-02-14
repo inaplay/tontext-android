@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tontext"
+rootProject.name = "TonText"
 include(":app")
 include(":whisper")
