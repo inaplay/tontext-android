@@ -7,8 +7,14 @@ import android.os.Looper
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.os.Build
 import com.tontext.app.audio.AudioRecorder
+import com.tontext.app.healing.HealingPreferences
+import com.tontext.app.healing.InputContext
+import com.tontext.app.healing.LlmClient
+import com.tontext.app.healing.LlmResult
+import com.tontext.app.healing.PromptBuilder
 import com.tontext.app.ui.KeyboardState
 import com.tontext.app.ui.KeyboardView
 import com.tontext.app.whisper.WhisperTranscriber
@@ -23,14 +29,19 @@ class TonTextIMEService : InputMethodService() {
     private var audioRecorder: AudioRecorder? = null
     private var transcriber: WhisperTranscriber? = null
     private var transcriptionJob: Job? = null
+    private var healingJob: Job? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var currentState = KeyboardState.IDLE
+    private var currentInputContext: InputContext? = null
+    private val healingPreferences by lazy { HealingPreferences(this) }
+    private val llmClient by lazy { LlmClient() }
 
     private val allowedTransitions = mapOf(
         KeyboardState.IDLE to setOf(KeyboardState.RECORDING),
         KeyboardState.RECORDING to setOf(KeyboardState.TRANSCRIBING, KeyboardState.IDLE),
-        KeyboardState.TRANSCRIBING to setOf(KeyboardState.IDLE, KeyboardState.BLANK),
+        KeyboardState.TRANSCRIBING to setOf(KeyboardState.IDLE, KeyboardState.BLANK, KeyboardState.HEALING),
+        KeyboardState.HEALING to setOf(KeyboardState.IDLE),
         KeyboardState.BLANK to setOf(KeyboardState.IDLE),
     )
 
@@ -54,6 +65,10 @@ class TonTextIMEService : InputMethodService() {
         if (currentState == KeyboardState.TRANSCRIBING) {
             transcriptionJob?.cancel()
             transcriptionJob = null
+        }
+        if (currentState == KeyboardState.HEALING) {
+            healingJob?.cancel()
+            healingJob = null
         }
         if (currentState == KeyboardState.BLANK) {
             mainHandler.removeCallbacksAndMessages(null)
@@ -85,6 +100,14 @@ class TonTextIMEService : InputMethodService() {
         }
 
         return keyboardView!!
+    }
+
+    override fun onStartInput(editorInfo: EditorInfo?, restarting: Boolean) {
+        super.onStartInput(editorInfo, restarting)
+        currentInputContext = InputContext.fromEditorInfo(editorInfo, this)
+        Log.d(LOG_TAG, "Input context: pkg=${currentInputContext?.packageName}, " +
+            "app=${currentInputContext?.appLabel}, " +
+            "password=${currentInputContext?.isPasswordField}")
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
@@ -148,9 +171,16 @@ class TonTextIMEService : InputMethodService() {
                     transcriber?.transcribe(audioData) ?: ""
                 }
                 if (result.isNotBlank() && !isBlankAudio(result)) {
-                    currentInputConnection?.commitText("$result ", 1)
-                    Log.d(LOG_TAG, "Committed text: $result")
-                    transitionTo(KeyboardState.IDLE)
+                    val context = currentInputContext
+                    if (healingPreferences.isConfigured &&
+                        context != null &&
+                        !context.isPasswordField) {
+                        startHealing(result, context)
+                    } else {
+                        currentInputConnection?.commitText("$result ", 1)
+                        Log.d(LOG_TAG, "Committed text: $result")
+                        transitionTo(KeyboardState.IDLE)
+                    }
                 } else if (isBlankAudio(result)) {
                     Log.d(LOG_TAG, "Blank audio detected")
                     transitionTo(KeyboardState.BLANK)
@@ -172,8 +202,45 @@ class TonTextIMEService : InputMethodService() {
         }
     }
 
+    private fun startHealing(rawText: String, inputContext: InputContext) {
+        transitionTo(KeyboardState.HEALING)
+        val systemPrompt = PromptBuilder.buildSystemPrompt(inputContext)
+        val provider = healingPreferences.llmProvider
+        val apiKey = healingPreferences.apiKey
+
+        Log.d(LOG_TAG, "Starting healing: provider=$provider, context=${inputContext.packageName}")
+
+        healingJob = serviceScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) {
+                    llmClient.heal(rawText, systemPrompt, provider, apiKey)
+                }
+                when (result) {
+                    is LlmResult.Success -> {
+                        currentInputConnection?.commitText("${result.text} ", 1)
+                        Log.d(LOG_TAG, "Committed healed text: ${result.text}")
+                    }
+                    is LlmResult.Error -> {
+                        Log.w(LOG_TAG, "Healing failed: ${result.message}, committing raw text")
+                        currentInputConnection?.commitText("$rawText ", 1)
+                    }
+                }
+                transitionTo(KeyboardState.IDLE)
+            } catch (e: CancellationException) {
+                Log.d(LOG_TAG, "Healing cancelled")
+                transitionTo(KeyboardState.IDLE)
+            } catch (e: Exception) {
+                Log.e(LOG_TAG, "Healing failed", e)
+                currentInputConnection?.commitText("$rawText ", 1)
+                transitionTo(KeyboardState.IDLE)
+            }
+        }
+    }
+
     private fun cancelTranscription() {
-        if (currentState != KeyboardState.RECORDING && currentState != KeyboardState.TRANSCRIBING) {
+        if (currentState != KeyboardState.RECORDING &&
+            currentState != KeyboardState.TRANSCRIBING &&
+            currentState != KeyboardState.HEALING) {
             Log.w(LOG_TAG, "cancelTranscription() ignored, currentState=$currentState")
             return
         }

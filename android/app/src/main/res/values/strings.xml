@@ -5,4 +5,26 @@
     <string name="release_to_cancel">Release to cancel</string>
     <string name="transcribing">Transcribing\u2026</string>
     <string name="no_speech_detected">No speech detected</string>
+    <string name="healing">Polishing\u2026</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_healing_title">Text Polishing</string>
+    <string name="settings_healing_description">Use an LLM to fix punctuation, casing, and formatting based on where you\'re typing</string>
+    <string name="settings_provider_title">LLM Provider</string>
+    <string name="settings_provider_anthropic">Anthropic (Claude)</string>
+    <string name="settings_provider_openai">OpenAI (GPT)</string>
+    <string name="settings_api_key_title">API Key</string>
+    <string name="settings_api_key_description">Your key is encrypted and stored locally on this device</string>
+    <string name="settings_api_key_hint">Enter your API key</string>
+    <string name="settings_test_connection">Test Connection</string>
+    <string name="settings_test_testing">Testing\u2026</string>
+    <string name="settings_test_success">Connection successful!</string>
+    <string name="settings_test_failed">Connection failed: %1$s</string>
+    <string name="settings_test_no_key">Please enter an API key first</string>
+
+    <!-- What's New -->
+    <string name="whats_new_skip">Skip</string>
+    <string name="whats_new_next">Next</string>
+    <string name="whats_new_done">Let\u2019s Go!</string>
 </resources>

@@ -21,7 +21,7 @@ private const val DOT_BLINK_DURATION_MS = 1200L
 private const val MIN_HOLD_DURATION_MS = 200L
 
 enum class KeyboardState {
-    IDLE, RECORDING, TRANSCRIBING, BLANK
+    IDLE, RECORDING, TRANSCRIBING, BLANK, HEALING
 }
 
 class KeyboardView @JvmOverloads constructor(
@@ -95,7 +95,7 @@ class KeyboardView @JvmOverloads constructor(
                     holdHandler.removeCallbacksAndMessages(null)
                     if (state == KeyboardState.RECORDING) {
                         onRecordStop?.invoke()
-                    } else if (state == KeyboardState.TRANSCRIBING) {
+                    } else if (state == KeyboardState.TRANSCRIBING || state == KeyboardState.HEALING) {
                         onCancelTranscription?.invoke()
                     }
                     true
@@ -171,6 +171,7 @@ class KeyboardView @JvmOverloads constructor(
                 pulseCircle.visibility = View.INVISIBLE
                 recordingDot.visibility = View.GONE
                 transcribingText.text = context.getString(R.string.transcribing)
+                transcribingText.setTextColor(context.getColor(R.color.text_secondary))
                 transcribingText.visibility = View.VISIBLE
                 stopPulseAnimation()
                 stopDotBlinkAnimation()
@@ -184,6 +185,19 @@ class KeyboardView @JvmOverloads constructor(
                 pulseCircle.visibility = View.INVISIBLE
                 recordingDot.visibility = View.GONE
                 transcribingText.text = context.getString(R.string.no_speech_detected)
+                transcribingText.visibility = View.VISIBLE
+                stopPulseAnimation()
+                stopDotBlinkAnimation()
+            }
+            KeyboardState.HEALING -> {
+                micButton.setImageResource(R.drawable.ic_stop)
+                statusText.text = ""
+                waveformView.visibility = View.INVISIBLE
+                waveformView.clear()
+                pulseCircle.visibility = View.INVISIBLE
+                recordingDot.visibility = View.GONE
+                transcribingText.text = context.getString(R.string.healing)
+                transcribingText.setTextColor(context.getColor(R.color.accent))
                 transcribingText.visibility = View.VISIBLE
                 stopPulseAnimation()
                 stopDotBlinkAnimation()
