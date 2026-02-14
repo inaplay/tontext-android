@@ -19,10 +19,9 @@ private const val BACKSPACE_REPEAT_DELAY_MS = 50L
 private const val PULSE_DURATION_MS = 1500L
 private const val DOT_BLINK_DURATION_MS = 1200L
 private const val MIN_HOLD_DURATION_MS = 200L
-private const val BLANK_AUDIO_DISPLAY_MS = 1200L
 
 enum class KeyboardState {
-    IDLE, RECORDING, TRANSCRIBING
+    IDLE, RECORDING, TRANSCRIBING, BLANK
 }
 
 class KeyboardView @JvmOverloads constructor(
@@ -176,6 +175,19 @@ class KeyboardView @JvmOverloads constructor(
                 stopPulseAnimation()
                 stopDotBlinkAnimation()
             }
+            KeyboardState.BLANK -> {
+                micButton.setImageResource(R.drawable.ic_mic)
+                micButton.background = context.getDrawable(R.drawable.mic_button_bg)
+                statusText.text = ""
+                waveformView.visibility = View.VISIBLE
+                waveformView.clear()
+                pulseCircle.visibility = View.INVISIBLE
+                recordingDot.visibility = View.GONE
+                transcribingText.text = context.getString(R.string.no_speech_detected)
+                transcribingText.visibility = View.VISIBLE
+                stopPulseAnimation()
+                stopDotBlinkAnimation()
+            }
         }
     }
 
@@ -183,14 +195,6 @@ class KeyboardView @JvmOverloads constructor(
         if (state != KeyboardState.RECORDING) return
         currentAmplitude = amplitude.coerceIn(0f, 1f)
         applyPulseScale()
-    }
-
-    fun showBlankAudioBriefly(onDone: () -> Unit) {
-        transcribingText.text = context.getString(R.string.blank_audio)
-        transcribingText.visibility = View.VISIBLE
-        Handler(Looper.getMainLooper()).postDelayed({
-            onDone()
-        }, BLANK_AUDIO_DISPLAY_MS)
     }
 
     private fun applyPulseScale() {

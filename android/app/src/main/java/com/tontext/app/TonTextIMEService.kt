@@ -15,6 +15,7 @@ import com.tontext.app.whisper.WhisperTranscriber
 import kotlinx.coroutines.*
 
 private const val LOG_TAG = "TonTextIME"
+private const val BLANK_AUDIO_DISPLAY_MS = 1200L
 
 class TonTextIMEService : InputMethodService() {
 
@@ -29,7 +30,8 @@ class TonTextIMEService : InputMethodService() {
     private val allowedTransitions = mapOf(
         KeyboardState.IDLE to setOf(KeyboardState.RECORDING),
         KeyboardState.RECORDING to setOf(KeyboardState.TRANSCRIBING, KeyboardState.IDLE),
-        KeyboardState.TRANSCRIBING to setOf(KeyboardState.IDLE),
+        KeyboardState.TRANSCRIBING to setOf(KeyboardState.IDLE, KeyboardState.BLANK),
+        KeyboardState.BLANK to setOf(KeyboardState.IDLE),
     )
 
     private fun transitionTo(newState: KeyboardState) {
@@ -52,6 +54,9 @@ class TonTextIMEService : InputMethodService() {
         if (currentState == KeyboardState.TRANSCRIBING) {
             transcriptionJob?.cancel()
             transcriptionJob = null
+        }
+        if (currentState == KeyboardState.BLANK) {
+            mainHandler.removeCallbacksAndMessages(null)
         }
         if (currentState != KeyboardState.IDLE) {
             Log.d(LOG_TAG, "State: $currentState → IDLE (forced)")
@@ -147,10 +152,13 @@ class TonTextIMEService : InputMethodService() {
                     Log.d(LOG_TAG, "Committed text: $result")
                     transitionTo(KeyboardState.IDLE)
                 } else if (isBlankAudio(result)) {
-                    Log.d(LOG_TAG, "Blank audio detected, showing briefly")
-                    keyboardView?.showBlankAudioBriefly {
-                        transitionTo(KeyboardState.IDLE)
-                    }
+                    Log.d(LOG_TAG, "Blank audio detected")
+                    transitionTo(KeyboardState.BLANK)
+                    mainHandler.postDelayed({
+                        if (currentState == KeyboardState.BLANK) {
+                            transitionTo(KeyboardState.IDLE)
+                        }
+                    }, BLANK_AUDIO_DISPLAY_MS)
                 } else {
                     transitionTo(KeyboardState.IDLE)
                 }
