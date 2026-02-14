@@ -45,9 +45,11 @@ graph TD
         G2[rsync + Docker<br/>Compose rebuild]
         G3[rsync to /var/www/tontext<br/>+ nginx reload]
         H1[GitHub Release<br/>with APK]
+        H1b[Upload APK to<br/>MinIO via backend API]
         H2[Backend live at<br/>tontext.app/api]
         H3[Website live at<br/>tontext.app]
         I1[Obtainium detects release,<br/>auto-installs APK on Android]
+        I1b[APK downloadable at<br/>tontext.app/api/download/latest]
     end
 
     A --> B
@@ -60,6 +62,7 @@ graph TD
     E --> F3
 
     F1 --> G1 --> H1 --> I1
+    G1 --> H1b --> I1b
     F2 --> G2 --> H2
     F3 --> G3 --> H3
 ```
@@ -69,7 +72,7 @@ graph TD
 1. **Request a change** — Describe what you want in Claude Code (e.g. "add a settings button to the keyboard", "make the waveform bars thicker")
 2. **Claude Code implements** — It reads the codebase, makes changes across any component, and creates atomic git commits
 3. **Push to main** — Claude Code pushes to GitHub, which triggers CI/CD via path-based workflows:
-   - `android/**` changed → APK build on the self-hosted runner → GitHub Release
+   - `android/**` changed → APK build on the self-hosted runner → GitHub Release + upload to MinIO (served at `tontext.app/api/download/latest`)
    - `backend/**` or `deploy/**` changed → rsync to server → Docker rebuild → backend live
    - `web/**` changed → rsync to server → nginx reload → website live
 4. **APK auto-updates** — [Obtainium](https://github.com/ImranR98/Obtainium) on the Android phone watches GitHub Releases, detects the new APK, and installs it automatically
