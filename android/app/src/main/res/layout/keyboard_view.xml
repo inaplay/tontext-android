@@ -3,36 +3,71 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
+    android:clipChildren="false"
     android:background="@color/background_dark">
 
-    <!-- Waveform visualization -->
-    <com.tontext.app.ui.WaveformView
-        android:id="@+id/waveformView"
+    <!-- Waveform area container with transcribing overlay -->
+    <FrameLayout
+        android:id="@+id/waveformContainer"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp">
 
-    <!-- Status text -->
-    <TextView
-        android:id="@+id/statusText"
+        <com.tontext.app.ui.WaveformView
+            android:id="@+id/waveformView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Transcribing indicator, centered in waveform area -->
+        <TextView
+            android:id="@+id/transcribingText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/transcribing"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Status row: red recording dot + release text -->
+    <LinearLayout
+        android:id="@+id/statusRow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
+        android:gravity="center_vertical"
         android:layout_marginTop="4dp"
-        android:textColor="@color/text_secondary"
-        android:textSize="13sp" />
+        android:orientation="horizontal">
 
-    <!-- Button row: switch | mic | backspace -->
-    <LinearLayout
+        <!-- Blinking red recording dot -->
+        <View
+            android:id="@+id/recordingDot"
+            android:layout_width="8dp"
+            android:layout_height="8dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/recording_dot_bg"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Button row: FrameLayout ensures mic is always perfectly centered -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="8dp"
         android:paddingBottom="12dp">
 
         <!-- Left: Switch keyboard -->
@@ -40,16 +75,27 @@
             android:id="@+id/switchKeyboardButton"
             android:layout_width="72dp"
             android:layout_height="72dp"
+            android:layout_gravity="start|center_vertical"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Switch keyboard"
             android:scaleType="center"
             android:src="@drawable/ic_keyboard_switch" />
 
-        <!-- Center: Mic button -->
+        <!-- Center: Mic button with pulse background -->
         <FrameLayout
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1">
+            android:clipChildren="false"
+            android:layout_gravity="center">
+
+            <!-- Pulsating light blue circle behind mic button -->
+            <View
+                android:id="@+id/pulseCircle"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_gravity="center"
+                android:background="@drawable/pulse_circle_bg"
+                android:visibility="gone" />
 
             <ImageButton
                 android:id="@+id/micButton"
@@ -65,13 +111,14 @@
         <!-- Right: Backspace -->
         <ImageButton
             android:id="@+id/backspaceButton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="end|center_vertical"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:contentDescription="Backspace"
             android:scaleType="center"
             android:src="@drawable/ic_backspace" />
 
-    </LinearLayout>
+    </FrameLayout>
 
 </LinearLayout>
