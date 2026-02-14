@@ -47,7 +47,7 @@ graph TD
         H1[GitHub Release<br/>with APK]
         H2[Backend live at<br/>tontext.app/api]
         H3[Website live at<br/>tontext.app]
-        I1[Obtainium detects release,<br/>auto-installs APK]
+        I1[Obtainium detects release,<br/>auto-installs APK on Android]
     end
 
     A --> B
