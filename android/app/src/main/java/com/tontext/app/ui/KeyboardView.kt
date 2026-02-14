@@ -18,6 +18,7 @@ private const val BACKSPACE_INITIAL_DELAY_MS = 400L
 private const val BACKSPACE_REPEAT_DELAY_MS = 50L
 private const val PULSE_DURATION_MS = 1500L
 private const val DOT_BLINK_DURATION_MS = 1200L
+private const val MIN_HOLD_DURATION_MS = 200L
 
 enum class KeyboardState {
     IDLE, RECORDING, TRANSCRIBING
@@ -51,6 +52,8 @@ class KeyboardView @JvmOverloads constructor(
     private var dotBlinkAnimator: ValueAnimator? = null
     private var breathingScale = 1f
     private var currentAmplitude = 0f
+    private val holdHandler = Handler(Looper.getMainLooper())
+    private var holdTriggered = false
 
     private val backspaceRepeatRunnable = object : Runnable {
         override fun run() {
@@ -74,11 +77,16 @@ class KeyboardView @JvmOverloads constructor(
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     if (state == KeyboardState.IDLE) {
-                        onRecordStart?.invoke()
+                        holdTriggered = false
+                        holdHandler.postDelayed({
+                            holdTriggered = true
+                            onRecordStart?.invoke()
+                        }, MIN_HOLD_DURATION_MS)
                     }
                     true
                 }
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    holdHandler.removeCallbacksAndMessages(null)
                     if (state == KeyboardState.RECORDING) {
                         onRecordStop?.invoke()
                     } else if (state == KeyboardState.TRANSCRIBING) {
@@ -124,7 +132,7 @@ class KeyboardView @JvmOverloads constructor(
                 statusText.text = ""
                 waveformView.clear()
                 waveformView.visibility = View.VISIBLE
-                pulseCircle.visibility = View.GONE
+                pulseCircle.visibility = View.INVISIBLE
                 recordingDot.visibility = View.GONE
                 transcribingText.visibility = View.GONE
                 stopPulseAnimation()
@@ -146,7 +154,7 @@ class KeyboardView @JvmOverloads constructor(
                 statusText.text = ""
                 waveformView.visibility = View.INVISIBLE
                 waveformView.clear()
-                pulseCircle.visibility = View.GONE
+                pulseCircle.visibility = View.INVISIBLE
                 recordingDot.visibility = View.GONE
                 transcribingText.visibility = View.VISIBLE
                 stopPulseAnimation()
