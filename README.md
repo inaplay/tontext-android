@@ -99,5 +99,5 @@ claude
 
 ## Project Documentation
 
-- **`PLAN.md`** — Full product specification and implementation phases
-- **`UI_STATES.md`** — UI state diagrams and wireframes
+- **[`docs/PLAN.md`](docs/PLAN.md)** — Original project specification (historical reference)
+- **[`docs/state-machine.md`](docs/state-machine.md)** — Keyboard state machine documentation
