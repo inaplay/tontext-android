@@ -1,0 +1,21 @@
+services:
+  tontext-backend:
+    build: ./backend
+    container_name: tontext-backend
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+    environment:
+      - DATABASE_PATH=/app/data/tontext.db
+      - MINIO_ENDPOINT=graphula-minio:9000
+      - MINIO_BUCKET=tontext
+      - STORAGE_BASE_URL=/storage
+    networks:
+      - graphula-network
+
+networks:
+  graphula-network:
+    external: true
+    name: graphula_graphula-network
