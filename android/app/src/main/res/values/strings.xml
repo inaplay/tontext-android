@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">TonText</string>
     <string name="recording">Recording</string>
-    <string name="release_to_cancel">☝ Release to cancel</string>
+    <string name="release_to_cancel">Release to cancel</string>
     <string name="transcribing">Transcribing\u2026</string>
 </resources>
