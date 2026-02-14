@@ -1,0 +1,5 @@
+<ImageView
+    android:id="@+id/switchKeyboardButton"
+    android:layout_width="72dp"
+    android:layout_height="72dp"
+    android:contentDescription="Switch Keyboard" />
