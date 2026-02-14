@@ -2,6 +2,7 @@ package com.tontext.app
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -13,6 +14,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.tontext.app.whatsnew.WhatsNewActivity
 import com.tontext.app.whisper.WhisperTranscriber
 import kotlinx.coroutines.*
 import java.io.File
@@ -39,6 +41,26 @@ class SetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val prefs = AppPreferences(this)
+        val currentVersionCode = BuildConfig.VERSION_CODE
+        val lastSeen = prefs.lastSeenVersionCode
+
+        when {
+            lastSeen == 0 -> {
+                // First install — store version, skip wizard
+                prefs.lastSeenVersionCode = currentVersionCode
+            }
+            lastSeen < currentVersionCode -> {
+                // Updated — show What's New wizard
+                val intent = Intent(this, WhatsNewActivity::class.java).apply {
+                    putExtra(WhatsNewActivity.EXTRA_LAST_SEEN_VERSION_CODE, lastSeen)
+                }
+                startActivity(intent)
+            }
+            // Same version — proceed normally
+        }
+
         setContentView(R.layout.activity_setup)
 
         stepDownloadStatus = findViewById(R.id.stepDownloadStatus)
