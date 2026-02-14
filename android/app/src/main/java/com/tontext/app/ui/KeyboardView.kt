@@ -34,7 +34,9 @@ class KeyboardView @JvmOverloads constructor(
     val micButton: ImageButton
     val statusText: TextView
     val switchKeyboardButton: ImageButton
+    val settingsButton: ImageButton
     val backspaceButton: ImageButton
+    val returnButton: ImageButton
     private val pulseCircle: View
     private val recordingDot: View
     private val transcribingText: TextView
@@ -44,6 +46,8 @@ class KeyboardView @JvmOverloads constructor(
     var onCancelTranscription: (() -> Unit)? = null
     var onSwitchKeyboard: (() -> Unit)? = null
     var onBackspace: (() -> Unit)? = null
+    var onReturn: (() -> Unit)? = null
+    var onOpenSettings: (() -> Unit)? = null
 
     private var state = KeyboardState.IDLE
     private var backspaceHandler: Handler? = null
@@ -68,7 +72,9 @@ class KeyboardView @JvmOverloads constructor(
         micButton = findViewById(R.id.micButton)
         statusText = findViewById(R.id.statusText)
         switchKeyboardButton = findViewById(R.id.switchKeyboardButton)
+        settingsButton = findViewById(R.id.settingsButton)
         backspaceButton = findViewById(R.id.backspaceButton)
+        returnButton = findViewById(R.id.returnButton)
         pulseCircle = findViewById(R.id.pulseCircle)
         recordingDot = findViewById(R.id.recordingDot)
         transcribingText = findViewById(R.id.transcribingText)
@@ -120,6 +126,14 @@ class KeyboardView @JvmOverloads constructor(
                 stopBackspaceRepeat()
             }
             false
+        }
+
+        returnButton.setOnClickListener {
+            onReturn?.invoke()
+        }
+
+        settingsButton.setOnClickListener {
+            onOpenSettings?.invoke()
         }
     }
 

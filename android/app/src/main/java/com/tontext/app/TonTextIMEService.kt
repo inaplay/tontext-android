@@ -5,6 +5,7 @@ import android.inputmethodservice.InputMethodService
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.KeyEvent
 import android.view.View
 import android.os.Build
 import com.tontext.app.audio.AudioRecorder
@@ -66,6 +67,8 @@ class TonTextIMEService : InputMethodService() {
             onCancelTranscription = { cancelTranscription() }
             onSwitchKeyboard = { switchToNextKeyboard() }
             onBackspace = { deleteOneCharacter() }
+            onReturn = { sendReturnKey() }
+            onOpenSettings = { openSettings() }
         }
 
         // Lazily init transcriber
@@ -164,6 +167,28 @@ class TonTextIMEService : InputMethodService() {
 
     private fun deleteOneCharacter() {
         currentInputConnection?.deleteSurroundingText(1, 0)
+    }
+
+    private fun sendReturnKey() {
+        currentInputConnection?.let { ic ->
+            val editorInfo = currentInputEditorInfo
+            val actionId = editorInfo?.imeOptions?.and(
+                android.view.inputmethod.EditorInfo.IME_MASK_ACTION
+            ) ?: android.view.inputmethod.EditorInfo.IME_ACTION_NONE
+
+            if (actionId != android.view.inputmethod.EditorInfo.IME_ACTION_NONE) {
+                ic.performEditorAction(actionId)
+            } else {
+                sendDownUpKeyEvents(KeyEvent.KEYCODE_ENTER)
+            }
+        }
+    }
+
+    private fun openSettings() {
+        val intent = Intent(this, SettingsActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        startActivity(intent)
     }
 
     private fun switchToNextKeyboard() {

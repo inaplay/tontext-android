@@ -65,21 +65,36 @@
         android:layout_height="wrap_content"
         android:clipChildren="false"
         android:clipToPadding="false"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
         android:layout_marginTop="8dp"
         android:paddingBottom="12dp">
 
-        <!-- Left: Switch keyboard -->
-        <ImageButton
-            android:id="@+id/switchKeyboardButton"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+        <!-- Left: Switch keyboard + Settings -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="start|center_vertical"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Switch keyboard"
-            android:scaleType="center"
-            android:src="@drawable/ic_keyboard_switch" />
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/switchKeyboardButton"
+                android:layout_width="56dp"
+                android:layout_height="72dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Switch keyboard"
+                android:scaleType="center"
+                android:src="@drawable/ic_keyboard_switch" />
+
+            <ImageButton
+                android:id="@+id/settingsButton"
+                android:layout_width="48dp"
+                android:layout_height="72dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Settings"
+                android:scaleType="center"
+                android:src="@drawable/ic_settings" />
+        </LinearLayout>
 
         <!-- Center: Mic button with pulse background -->
         <FrameLayout
@@ -108,16 +123,33 @@
                 android:src="@drawable/ic_mic" />
         </FrameLayout>
 
-        <!-- Right: Backspace -->
-        <ImageButton
-            android:id="@+id/backspaceButton"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+        <!-- Right: Backspace + Return -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_gravity="end|center_vertical"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Backspace"
-            android:scaleType="center"
-            android:src="@drawable/ic_backspace" />
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/backspaceButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Backspace"
+                android:scaleType="center"
+                android:src="@drawable/ic_backspace" />
+
+            <ImageButton
+                android:id="@+id/returnButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Return"
+                android:scaleType="center"
+                android:src="@drawable/ic_return" />
+        </LinearLayout>
 
     </FrameLayout>
 
