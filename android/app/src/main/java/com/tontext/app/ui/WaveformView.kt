@@ -45,18 +45,18 @@ class WaveformView @JvmOverloads constructor(
         val h = height.toFloat()
         val totalBars = MAX_BARS
         val barWidth = w / totalBars
-        val gap = barWidth * 0.2f
+        val gap = barWidth * 0.1f  // Reduced gap for thicker bars (~50% more bar width)
         val drawBarWidth = barWidth - gap
 
         for (i in 0 until barCount) {
             // Read oldest to newest
             val idx = if (barCount < MAX_BARS) i else (writeIndex + i) % MAX_BARS
             val amp = amplitudes[idx]
-            val barHeight = (amp * h * 3f).coerceAtMost(h) // Amplify for visibility
+            val barHeight = (amp * h * 4.5f).coerceAtMost(h) // 50% taller (was 3f)
             // Right-align: newest bar at right edge, older bars pushed left
             val left = w - (barCount - i) * barWidth
             val top = h - barHeight
-            canvas.drawRoundRect(left, top, left + drawBarWidth, h, 2f, 2f, barPaint)
+            canvas.drawRoundRect(left, top, left + drawBarWidth, h, 3f, 3f, barPaint)
         }
     }
 

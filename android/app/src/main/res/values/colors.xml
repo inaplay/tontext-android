@@ -10,4 +10,6 @@
     <color name="mic_button_bg">#FFD8D8E0</color>
     <color name="mic_button_color">#FF64B5F6</color>
     <color name="mic_button_pressed">#FF42A5F5</color>
+    <color name="pulse_circle">#4064B5F6</color>
+    <color name="recording_red">#FFF44336</color>
 </resources>

@@ -65,6 +65,7 @@ class TonTextIMEService : InputMethodService() {
             onAmplitude { amplitude ->
                 mainHandler.post {
                     keyboardView?.waveformView?.addAmplitude(amplitude)
+                    keyboardView?.updatePulseWithAmplitude(amplitude)
                 }
             }
             start()
