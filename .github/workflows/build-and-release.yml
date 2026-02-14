@@ -1,13 +1,31 @@
-# Define a job to generate changelog.json 
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Generate Changelog
         run: |
-          git fetch --prune --unshallow
-          last_tag=$(git describe --tags --abbrev=0)
-          commits=$(git log --oneline $last_tag..HEAD)
-          echo "[{" > changelog.json
-          for commit in $commits; do
-            echo "    \"message\": \"$commit\"," >> changelog.json
-          done
-          echo "}]" >> changelog.json
+          last_tag=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git rev-list --max-parents=0 HEAD)
           mkdir -p android/app/src/main/assets
-          mv changelog.json android/app/src/main/assets/changelog.json
+          git log --pretty=format:"- %s" "$last_tag"..HEAD > android/app/src/main/assets/changelog.txt
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build Release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
